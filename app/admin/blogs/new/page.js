@@ -12,7 +12,7 @@ export default async function NewBlog() {
     type: "blog",
     parent_id: "",
     title: "",
-    language_code: "en-GB",
+    language_code: "en-US",
     translation_group_id: "",
     meta_title: "",
     meta_description: "",

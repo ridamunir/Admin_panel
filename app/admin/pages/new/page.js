@@ -16,7 +16,7 @@ export default async function NewPage({ searchParams }) {
     type: preset,
     parent_id: searchParams?.parent || "",
     title: "",
-    language_code: "en-GB",
+    language_code: "en-US",
     translation_group_id: "",
     meta_title: "",
     meta_description: "",

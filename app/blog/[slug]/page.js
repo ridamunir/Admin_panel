@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPageBySlug, getTranslations, getRequestLang, isConfigured } from "@/lib/data";
+import { getPageBySlug, getTranslations, getRequestLang, isConfigured, getLanguages, redirectDefaultVariantPrefix } from "@/lib/data";
 import { pageMetadata, isLanguageEnabled } from "@/lib/languages";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +12,17 @@ export async function generateStaticParams() {
 const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 
 export async function generateMetadata({ params }) {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   const page = await getPageBySlug(params.slug, lang);
   if (!page || page.type !== "blog" || page.status !== "published") return { title: "Not found" };
   const translations = await getTranslations(page.translation_group_id || page.id);
-  return pageMetadata(page, translations, BASE);
+  const languages = await getLanguages();
+  return pageMetadata(page, translations, BASE, languages);
 }
 
 export default async function BlogPostPage({ params }) {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   if (lang !== "en" && !(await isLanguageEnabled(lang))) notFound();
   const page = await getPageBySlug(params.slug, lang);

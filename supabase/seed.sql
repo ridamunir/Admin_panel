@@ -8,40 +8,40 @@
 
 -- ---------- 8 foundational pages ----------
 insert into pages (id, slug, type, title, language_code, meta_title, meta_description, canonical_url, status, publish_date) values
-('00000000-0000-0000-0000-000000000001', '', 'foundational', 'Homepage', 'en-GB', 'Who Called Me? Check Unknown Numbers — MyRingCheck', 'Check any unknown number for free. See spam reports, safety score and who called you — no sign-up needed.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000002', 'about-us', 'foundational', 'About Us', 'en-GB', 'About Us — MyRingCheck', 'About MyRingCheck — why we built a free unknown-number checker.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000003', 'contact-us', 'foundational', 'Contact Us', 'en-GB', 'Contact Us — MyRingCheck', 'Contact MyRingCheck.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000004', 'privacy-policy', 'foundational', 'Privacy Policy', 'en-GB', 'Privacy Policy — MyRingCheck', 'How MyRingCheck uses your data.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000005', 'terms-and-conditions', 'foundational', 'Terms & Conditions', 'en-GB', 'Terms & Conditions — MyRingCheck', 'Rules for using MyRingCheck.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000006', 'disclaimer', 'foundational', 'Disclaimer', 'en-GB', 'Disclaimer — MyRingCheck', 'Disclaimer for MyRingCheck.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000007', 'cookie-policy', 'foundational', 'Cookie Policy', 'en-GB', 'Cookie Policy — MyRingCheck', 'How MyRingCheck uses cookies.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000008', 'faqs', 'foundational', 'FAQs', 'en-GB', 'FAQs — MyRingCheck', 'Frequently asked questions about MyRingCheck.', '', 'published', '2026-11-12')
+('00000000-0000-0000-0000-000000000001', '', 'foundational', 'Homepage', 'en-US', 'Who Called Me? Check Unknown Numbers — MyRingCheck', 'Check any unknown number for free. See spam reports, safety score and who called you — no sign-up needed.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000002', 'about-us', 'foundational', 'About Us', 'en-US', 'About Us — MyRingCheck', 'About MyRingCheck — why we built a free unknown-number checker.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000003', 'contact-us', 'foundational', 'Contact Us', 'en-US', 'Contact Us — MyRingCheck', 'Contact MyRingCheck.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000004', 'privacy-policy', 'foundational', 'Privacy Policy', 'en-US', 'Privacy Policy — MyRingCheck', 'How MyRingCheck uses your data.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000005', 'terms-and-conditions', 'foundational', 'Terms & Conditions', 'en-US', 'Terms & Conditions — MyRingCheck', 'Rules for using MyRingCheck.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000006', 'disclaimer', 'foundational', 'Disclaimer', 'en-US', 'Disclaimer — MyRingCheck', 'Disclaimer for MyRingCheck.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000007', 'cookie-policy', 'foundational', 'Cookie Policy', 'en-US', 'Cookie Policy — MyRingCheck', 'How MyRingCheck uses cookies.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000008', 'faqs', 'foundational', 'FAQs', 'en-US', 'FAQs — MyRingCheck', 'Frequently asked questions about MyRingCheck.', '', 'published', '2026-11-12')
 on conflict (id) do nothing;
 
 -- ---------- tool page ----------
 insert into pages (id, slug, type, title, language_code, meta_title, meta_description, canonical_url, status, publish_date) values
-('00000000-0000-0000-0000-000000000009', 'who-called-me', 'tool', 'Who Called Me', 'en-GB', 'Who Called Me? Check Unknown Numbers — MyRingCheck', 'Check any unknown number for free. See spam reports, safety score and who called you.', '', 'published', '2026-11-12')
+('00000000-0000-0000-0000-000000000009', 'who-called-me', 'tool', 'Who Called Me', 'en-US', 'Who Called Me? Check Unknown Numbers — MyRingCheck', 'Check any unknown number for free. See spam reports, safety score and who called you.', '', 'published', '2026-11-12')
 on conflict (id) do nothing;
 
 -- ---------- hub + sub-pages ----------
 insert into pages (id, slug, type, title, language_code, meta_title, meta_description, canonical_url, status, publish_date) values
-('00000000-0000-0000-0000-000000000010', 'guides', 'hub', 'Guides', 'en-GB', 'Guides — MyRingCheck', 'Guides to checking unknown numbers and staying safe from scam calls.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000011', 'how-to-report-a-scam-call', 'subpage', 'How to Report a Scam Call', 'en-GB', 'How to Report a Scam Call — MyRingCheck', 'How to report a scam call step by step.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000012', 'what-is-caller-id-spoofing', 'subpage', 'What Is Caller ID Spoofing?', 'en-GB', 'What Is Caller ID Spoofing? — MyRingCheck', 'What caller ID spoofing is and how to spot it.', '', 'published', '2026-11-12')
+('00000000-0000-0000-0000-000000000010', 'guides', 'hub', 'Guides', 'en-US', 'Guides — MyRingCheck', 'Guides to checking unknown numbers and staying safe from scam calls.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000011', 'how-to-report-a-scam-call', 'subpage', 'How to Report a Scam Call', 'en-US', 'How to Report a Scam Call — MyRingCheck', 'How to report a scam call step by step.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000012', 'what-is-caller-id-spoofing', 'subpage', 'What Is Caller ID Spoofing?', 'en-US', 'What Is Caller ID Spoofing? — MyRingCheck', 'What caller ID spoofing is and how to spot it.', '', 'published', '2026-11-12')
 on conflict (id) do nothing;
 update pages set parent_id = '00000000-0000-0000-0000-000000000010' where id in ('00000000-0000-0000-0000-000000000011','00000000-0000-0000-0000-000000000012');
 
 -- ---------- pillar + sub-page ----------
 insert into pages (id, slug, type, title, language_code, meta_title, meta_description, canonical_url, status, publish_date) values
-('00000000-0000-0000-0000-000000000013', 'who-called-me-guide', 'pillar', 'Who Called Me Guide', 'en-GB', 'Who Called Me Guide — MyRingCheck', 'The complete guide to unknown numbers, spam calls and scam callers.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000014', 'uk-area-codes-explained', 'subpage', 'UK Area Codes Explained', 'en-GB', 'UK Area Codes Explained — MyRingCheck', 'What UK area codes mean and which ones scammers spoof most.', '', 'published', '2026-11-12')
+('00000000-0000-0000-0000-000000000013', 'who-called-me-guide', 'pillar', 'Who Called Me Guide', 'en-US', 'Who Called Me Guide — MyRingCheck', 'The complete guide to unknown numbers, spam calls and scam callers.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000014', 'uk-area-codes-explained', 'subpage', 'UK Area Codes Explained', 'en-US', 'UK Area Codes Explained — MyRingCheck', 'What UK area codes mean and which ones scammers spoof most.', '', 'published', '2026-11-12')
 on conflict (id) do nothing;
 update pages set parent_id = '00000000-0000-0000-0000-000000000013' where id = '00000000-0000-0000-0000-000000000014';
 
 -- ---------- blogs ----------
 insert into pages (id, slug, type, title, language_code, meta_title, meta_description, canonical_url, status, publish_date) values
-('00000000-0000-0000-0000-000000000015', 'how-to-check-an-unknown-number', 'blog', 'How to Check an Unknown Number', 'en-GB', 'How to Check an Unknown Number — MyRingCheck', 'How to check an unknown number for free, step by step.', '', 'published', '2026-11-12'),
-('00000000-0000-0000-0000-000000000016', '5-signs-a-call-is-a-scam', 'blog', '5 Signs a Call Is a Scam', 'en-GB', '5 Signs a Call Is a Scam — MyRingCheck', 'Five warning signs that a call is a scam.', '', 'draft', null)
+('00000000-0000-0000-0000-000000000015', 'how-to-check-an-unknown-number', 'blog', 'How to Check an Unknown Number', 'en-US', 'How to Check an Unknown Number — MyRingCheck', 'How to check an unknown number for free, step by step.', '', 'published', '2026-11-12'),
+('00000000-0000-0000-0000-000000000016', '5-signs-a-call-is-a-scam', 'blog', '5 Signs a Call Is a Scam', 'en-US', '5 Signs a Call Is a Scam — MyRingCheck', 'Five warning signs that a call is a scam.', '', 'draft', null)
 on conflict (id) do nothing;
 
 -- ---------- sections ----------
@@ -97,20 +97,21 @@ insert into variables (id, section_id, name, value_html, sort_order) values
 ('20000000-0000-0000-0000-000000000027', '10000000-0000-0000-0000-000000000018', 'blog_content', '<h2>1. They ask for a code</h2><p>A real bank never asks for your one-time code on a call.</p>', 0)
 on conflict (id) do nothing;
 
--- ---------- languages (predefined list; en default+enabled, es enabled as the worked example) ----------
+-- ---------- languages (predefined list; v4.5: default is English (US), English (UK) is a separate disabled-by-default option) ----------
 insert into languages (code, full_code, name, og_locale, is_default, enabled, is_custom, sort_order) values
-('en', 'en-GB', 'English', 'en_GB', true, true, false, 0),
-('es', 'es-ES', 'Spanish', 'es_ES', false, true, false, 1),
-('fr', 'fr-FR', 'French', 'fr_FR', false, false, false, 2),
-('de', 'de-DE', 'German', 'de_DE', false, false, false, 3),
-('pt', 'pt-PT', 'Portuguese', 'pt_PT', false, false, false, 4),
-('it', 'it-IT', 'Italian', 'it_IT', false, false, false, 5),
-('nl', 'nl-NL', 'Dutch', 'nl_NL', false, false, false, 6),
-('no', 'no-NO', 'Norwegian', 'no_NO', false, false, false, 7),
-('ur', 'ur-PK', 'Urdu', 'ur_PK', false, false, false, 8),
-('ar', 'ar-SA', 'Arabic', 'ar_SA', false, false, false, 9),
-('hi', 'hi-IN', 'Hindi', 'hi_IN', false, false, false, 10),
-('tr', 'tr-TR', 'Turkish', 'tr_TR', false, false, false, 11)
+('en', 'en-US', 'English (US)', 'en_US', true, true, false, 0),
+('en-gb', 'en-GB', 'English (UK)', 'en_GB', false, false, false, 1),
+('es', 'es-ES', 'Spanish', 'es_ES', false, true, false, 2),
+('fr', 'fr-FR', 'French', 'fr_FR', false, false, false, 3),
+('de', 'de-DE', 'German', 'de_DE', false, false, false, 4),
+('pt', 'pt-PT', 'Portuguese', 'pt_PT', false, false, false, 5),
+('it', 'it-IT', 'Italian', 'it_IT', false, false, false, 6),
+('nl', 'nl-NL', 'Dutch', 'nl_NL', false, false, false, 7),
+('no', 'no-NO', 'Norwegian', 'no_NO', false, false, false, 8),
+('ur', 'ur-PK', 'Urdu', 'ur_PK', false, false, false, 9),
+('ar', 'ar-SA', 'Arabic', 'ar_SA', false, false, false, 10),
+('hi', 'hi-IN', 'Hindi', 'hi_IN', false, false, false, 11),
+('tr', 'tr-TR', 'Turkish', 'tr_TR', false, false, false, 12)
 on conflict (code) do nothing;
 
 -- ---------- translation groups: every existing page starts as its own group ----------

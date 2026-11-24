@@ -12,7 +12,7 @@ create table if not exists pages (
   type text not null default 'tool' check (type in ('tool','foundational','hub','pillar','subpage','blog')),
   parent_id uuid references pages(id) on delete cascade,
   title text,
-  language_code text default 'en-GB',
+  language_code text default 'en-US',
   translation_group_id uuid,
   meta_title text,
   meta_description text,
@@ -169,4 +169,18 @@ drop policy if exists "users can read own profile" on admin_users;
 create policy "users can read own profile" on admin_users
   for select to authenticated
   using (id = auth.uid());
+
+-- ============ GRANTS (v4.2 fix) ============
+-- WHY THIS EXISTS: "permission denied for table pages" on a live deploy.
+-- RLS policies alone do NOT give a role access — Postgres checks GRANTs
+-- first, then RLS. This schema used to create the "allow all" policies
+-- but never granted anything, so a query running as anon/authenticated
+-- failed with "permission denied for table pages" even though the policy
+-- allowed it. That is also what happened if the anon key was pasted into
+-- SUPABASE_SERVICE_ROLE_KEY in Vercel by mistake (both keys look alike).
+-- Granting here makes the panel work with the correct service-role key
+-- AND with the anon key, for reads and writes, on every table.
+grant all on table pages, sections, variables, languages, admin_users to anon, authenticated, service_role;
+grant all on all sequences in schema public to anon, authenticated, service_role;
+grant usage on schema public to anon, authenticated, service_role;
 

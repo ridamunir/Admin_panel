@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAllPages, isConfigured } from "@/lib/data";
 import { getSessionUser, listAdminUsers } from "@/lib/session";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,23 @@ export default async function AdminDashboard() {
   const configured = isConfigured();
   const { user } = await getSessionUser();
   const isBootstrap = Boolean(user?.bootstrap);
+
+  // Real database check (v4.2 fix): "Connected" used to mean only that
+  // env vars were present, while getAllPages() silently fell back to demo
+  // data on error — so the Dashboard could show green while the Blogs
+  // page failed with "permission denied for table pages". Now we run a
+  // real query and show its error instead of hiding it.
+  let dbError = null;
+  if (isSupabaseConfigured()) {
+    try {
+      const admin = getSupabaseAdmin();
+      const { error } = await admin.from("pages").select("id", { count: "exact", head: true });
+      if (error) dbError = error.message;
+    } catch (err) {
+      dbError = err.message;
+    }
+  }
+  const dbConnected = configured && !dbError;
 
   // Users count (cheap best-effort; "—" if it fails — never crash dashboard).
   let usersCount = "—";
@@ -40,6 +57,11 @@ export default async function AdminDashboard() {
           Demo data — connect Supabase to save changes
         </div>
       )}
+      {dbError && (
+        <div className="rounded-md bg-red-100 px-4 py-3 text-sm font-medium text-red-900">
+          Database error: {dbError} — run supabase/fix-permissions.sql in Supabase SQL Editor, then refresh. The counts below are demo data until this is fixed.
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {[
           ["Pages", pages.length, "/admin/pages"],
@@ -58,10 +80,14 @@ export default async function AdminDashboard() {
         <h2 className="mb-3 font-semibold">Database Status</h2>
         <p className="text-sm">
           DB Connected:{" "}
-          <span className={`font-bold ${configured ? "text-green-600" : "text-red-600"}`}>{configured ? "● Connected" : "● Not connected"}</span>
+          <span className={`font-bold ${dbConnected ? "text-green-600" : "text-red-600"}`}>{dbConnected ? "● Connected" : "● Not connected"}</span>
         </p>
         <p className="mt-1 text-sm text-slate-500">
-          {configured ? "Supabase is configured — changes will be saved." : "Supabase environment variables were not found — demo data is being shown. See DEPLOY.md."}
+          {dbConnected
+            ? "Supabase is configured — changes will be saved."
+            : dbError
+              ? "Supabase answered with an error — see the red box above."
+              : "Supabase environment variables were not found — demo data is being shown. See DEPLOY.md."}
         </p>
         <div className="mt-4 flex gap-2">
           <a href="/api/admin/export?format=csv" className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white">Export CSV</a>

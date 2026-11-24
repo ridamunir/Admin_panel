@@ -3,7 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
-function localPageUrl(p) { const sc = String(p.language_code || "en-GB").split("-")[0].toLowerCase(); const prefix = sc === "en" ? "" : `/${sc}`; if (p.type === "blog") return `${prefix}/blog/${p.slug}`; return p.slug ? `${prefix}/${p.slug}` : prefix || "/"; }
+// v4.5: en-US and en-GB are different languages — never collapse to "en".
+// The default variant (US unless UK was made default) has no prefix;
+// the other English variant gets /en-gb or /en-us. Languages are
+// fetched so the current default is known; without them US is assumed.
+function langKey(lc) { const s = String(lc || "en-US").toLowerCase(); if (s === "en-gb" || s === "en-us") return s; return s.split("-")[0]; }
+function localPageUrl(p, languages) {
+  const full = String(p.language_code || "en-US").toLowerCase();
+  const defFull = ((languages || []).find((l) => l.is_default)?.full_code || "en-US").toLowerCase();
+  const prefix = full === defFull ? "" : `/${langKey(p.language_code)}`;
+  if (p.type === "blog") return `${prefix}/blog/${p.slug}`;
+  return p.slug ? `${prefix}/${p.slug}` : prefix || "/";
+}
 
 const FILTERS = ["All", "tool", "foundational", "hub", "pillar", "subpage"];
 const TYPE_LABELS = { tool: "Tool", foundational: "Foundational", hub: "Hub", pillar: "Pillar", subpage: "Sub-page" };
@@ -16,6 +27,7 @@ export default function PagesListPage() {
   const [langFilter, setLangFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [configured, setConfigured] = useState(true);
+  const [languages, setLanguages] = useState([]);
 
   async function load() {
     setLoading(true);
@@ -25,6 +37,9 @@ export default function PagesListPage() {
       if (!res.ok) throw new Error(data.error || "Failed to load pages");
       setPages(data.pages || []);
       setConfigured(data.configured !== false);
+      const lres = await fetch("/api/admin/languages");
+      const ldata = await lres.json().catch(() => ({}));
+      if (lres.ok) setLanguages(ldata.languages || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -37,7 +52,7 @@ export default function PagesListPage() {
   const filtered = useMemo(() => {
     return pages.filter((p) => {
       if (filter !== "All" && p.type !== filter) return false;
-      if (langFilter !== "All" && String(p.language_code || "en-GB").split("-")[0].toLowerCase() !== langFilter) return false;
+      if (langFilter !== "All" && String(p.language_code || "en-US") !== langFilter) return false;
       if (search && !(p.title || "").toLowerCase().includes(search.toLowerCase()) && !(p.slug || "").toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
@@ -68,8 +83,8 @@ export default function PagesListPage() {
         <input className="min-w-56 flex-1 rounded-md border px-3 py-2 text-sm" placeholder="Search title / slug..." value={search} onChange={(e) => setSearch(e.target.value)} />
         <select value={langFilter} onChange={(e) => setLangFilter(e.target.value)} className="rounded-md border bg-white px-3 py-2 text-sm" title="Filter by language">
           <option value="All">All languages</option>
-          {[...new Set(pages.map((p) => String(p.language_code || "en-GB").split("-")[0].toLowerCase()))].map((c) => (
-            <option key={c} value={c}>{c === "en" ? "English" : c.toUpperCase()}</option>
+          {[...new Set(pages.map((p) => String(p.language_code || "en-US")))].map((c) => (
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
         {FILTERS.map((f) => (
@@ -90,7 +105,7 @@ export default function PagesListPage() {
               {filtered.map((p) => (
                 <tr key={p.id}>
                   <td className="px-4 py-3 font-medium">{p.title || "(no title)"}</td>
-                  <td className="px-4 py-3 text-slate-500">{localPageUrl(p)} <span className="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs">{p.language_code || "en-GB"}</span></td>
+                  <td className="px-4 py-3 text-slate-500">{localPageUrl(p, languages)} <span className="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs">{p.language_code || "en-US"}</span></td>
                   <td className="px-4 py-3">{TYPE_LABELS[p.type] || p.type}</td>
                   <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
                   <td className="px-4 py-3 text-right">

@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-function localPageUrl(p) { const sc = String(p.language_code || "en-GB").split("-")[0].toLowerCase(); const prefix = sc === "en" ? "" : `/${sc}`; return `${prefix}/blog/${p.slug}`; }
+// v4.5: en-US and en-GB are different languages — never collapse to "en".
+// The default variant (US unless UK was made default) has no prefix;
+// the other English variant gets /en-gb or /en-us.
+function langKey(lc) { const s = String(lc || "en-US").toLowerCase(); if (s === "en-gb" || s === "en-us") return s; return s.split("-")[0]; }
+function localPageUrl(p, languages) {
+  const full = String(p.language_code || "en-US").toLowerCase();
+  const defFull = ((languages || []).find((l) => l.is_default)?.full_code || "en-US").toLowerCase();
+  const prefix = full === defFull ? "" : `/${langKey(p.language_code)}`;
+  return `${prefix}/blog/${p.slug}`;
+}
 
 export default function BlogsListPage() {
   const [blogs, setBlogs] = useState([]);
@@ -10,6 +19,7 @@ export default function BlogsListPage() {
   const [error, setError] = useState("");
   const [configured, setConfigured] = useState(true);
   const [langFilter, setLangFilter] = useState("All");
+  const [languages, setLanguages] = useState([]);
 
   async function load() {
     setLoading(true);
@@ -19,6 +29,9 @@ export default function BlogsListPage() {
       if (!res.ok) throw new Error(data.error || "Failed to load blogs");
       setBlogs(data.pages || []);
       setConfigured(data.configured !== false);
+      const lres = await fetch("/api/admin/languages");
+      const ldata = await lres.json().catch(() => ({}));
+      if (lres.ok) setLanguages(ldata.languages || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -28,8 +41,8 @@ export default function BlogsListPage() {
 
   useEffect(() => { load(); }, []);
 
-  const langOptions = [...new Set(blogs.map((b) => String(b.language_code || "en-GB").split("-")[0].toLowerCase()))];
-  const filteredBlogs = langFilter === "All" ? blogs : blogs.filter((b) => String(b.language_code || "en-GB").split("-")[0].toLowerCase() === langFilter);
+  const langOptions = [...new Set(blogs.map((b) => String(b.language_code || "en-US")))];
+  const filteredBlogs = langFilter === "All" ? blogs : blogs.filter((b) => String(b.language_code || "en-US") === langFilter);
 
   async function changeStatus(blog, status) {
     const res = await fetch(`/api/admin/pages/${blog.id}/status`, {
@@ -71,7 +84,7 @@ export default function BlogsListPage() {
         <select value={langFilter} onChange={(e) => setLangFilter(e.target.value)} className="rounded-md border bg-white px-3 py-2 text-sm" title="Filter by language">
           <option value="All">All languages</option>
           {langOptions.map((c) => (
-            <option key={c} value={c}>{c === "en" ? "English" : c.toUpperCase()}</option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       </div>
@@ -98,7 +111,7 @@ export default function BlogsListPage() {
                   </td>
                   <td className="px-4 py-3 font-medium">
                     <Link href={`/admin/blogs/${b.id}`} className="hover:underline">{b.title || b.slug}</Link>
-                    <span className="block text-xs text-slate-400">{localPageUrl(b)} · {b.language_code || "en-GB"}</span>
+                    <span className="block text-xs text-slate-400">{localPageUrl(b, languages)} · {b.language_code || "en-US"}</span>
                   </td>
                   <td className="px-4 py-3">{fmtDate(b.publish_date || b.created_at)}</td>
                   <td className="px-4 py-3">

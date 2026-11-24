@@ -44,12 +44,14 @@ export async function POST(req) {
   const body = await req.json().catch(() => ({}));
   if (body.slug === undefined || body.slug === null) body.slug = "";
   // A slug must be unique per language: the same slug may exist in
-  // English and in Spanish (different URLs), but never twice in one
-  // language — the public routes could not tell them apart.
+  // English (US) and in Spanish (different URLs), but never twice in
+  // one language — the public routes could not tell them apart.
+  // Compared on the EXACT full code: en-US and en-GB are different
+  // languages and may share a slug (/, /en-gb/<slug>).
   {
-    const short = String(body.language_code || "en-GB").split("-")[0].toLowerCase();
+    const full = String(body.language_code || "en-US").toLowerCase();
     const { data: clash } = await admin.from("pages").select("id, language_code").eq("slug", body.slug || "");
-    if ((clash || []).some((r) => String(r.language_code || "en-GB").split("-")[0].toLowerCase() === short)) {
+    if ((clash || []).some((r) => String(r.language_code || "en-US").toLowerCase() === full)) {
       return NextResponse.json({ error: `A page with slug "${body.slug || "(homepage)"}" already exists in this language. Use a different slug.` }, { status: 409 });
     }
   }
@@ -61,7 +63,7 @@ export async function POST(req) {
       type: body.type || "tool",
       parent_id: body.parent_id || null,
       title: body.title || "",
-      language_code: body.language_code || "en-GB",
+      language_code: body.language_code || "en-US",
       translation_group_id: body.translation_group_id || null,
       meta_title: body.meta_title || "",
       meta_description: body.meta_description || "",

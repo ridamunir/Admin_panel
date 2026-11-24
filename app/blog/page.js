@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedBlogs, getRequestLang, isConfigured } from "@/lib/data";
+import { getPublishedBlogs, getRequestLang, isConfigured, getLanguages, redirectDefaultVariantPrefix } from "@/lib/data";
 import { pageUrl, isLanguageEnabled } from "@/lib/languages";
 import { DemoBanner } from "@/components/PublicPage";
 
@@ -10,10 +10,12 @@ export const metadata = { title: "Blog — MyRingCheck", description: "Guides an
 
 // Serves /blog (English) and, via middleware rewrite, /<lang>/blog.
 export default async function BlogListPage() {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   if (lang !== "en" && !(await isLanguageEnabled(lang))) notFound();
   const blogs = await getPublishedBlogs(lang);
   const homeHref = lang === "en" ? "/" : `/${lang}`;
+  const languages = await getLanguages();
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <DemoBanner configured={isConfigured()} />
@@ -26,7 +28,7 @@ export default async function BlogListPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={b.featured_image} alt={b.title || ""} className="mb-3 max-h-48 rounded-md" />
             )}
-            <Link href={pageUrl(b)} className="text-xl font-bold text-blue-600 hover:underline">{b.title || b.slug}</Link>
+            <Link href={pageUrl(b, "", languages)} className="text-xl font-bold text-blue-600 hover:underline">{b.title || b.slug}</Link>
             {b.meta_description && <p className="mt-1 text-slate-600">{b.meta_description}</p>}
             {b.publish_date && <p className="mt-2 text-sm text-slate-400">{new Date(b.publish_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
           </li>

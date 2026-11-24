@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPageBySlug, getPublishedPages, getTranslations, getRequestLang, isConfigured } from "@/lib/data";
+import { getPageBySlug, getPublishedPages, getTranslations, getRequestLang, isConfigured, getLanguages, redirectDefaultVariantPrefix } from "@/lib/data";
 import { pageMetadata, pageUrl, isLanguageEnabled } from "@/lib/languages";
 import { notFound } from "next/navigation";
 import { DemoBanner } from "@/components/PublicPage";
@@ -9,11 +9,13 @@ export const dynamic = "force-dynamic";
 const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 
 export async function generateMetadata() {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   const page = await getPageBySlug("", lang);
   if (!page) return { title: "Who Called Me? — MyRingCheck" };
   const translations = await getTranslations(page.translation_group_id || page.id);
-  return pageMetadata(page, translations, BASE);
+  const languages = await getLanguages();
+  return pageMetadata(page, translations, BASE, languages);
 }
 
 function renderSections(page) {
@@ -28,6 +30,7 @@ function renderSections(page) {
 }
 
 export default async function HomePage() {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   if (lang !== "en" && !(await isLanguageEnabled(lang))) notFound();
   const page = await getPageBySlug("", lang);
@@ -35,6 +38,7 @@ export default async function HomePage() {
   const blogs = published.filter((p) => p.type === "blog");
   const pages = published.filter((p) => p.type !== "blog" && p.slug !== "");
   const prefix = lang === "en" ? "" : `/${lang}`;
+  const languages = await getLanguages();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -52,7 +56,7 @@ export default async function HomePage() {
       <ul className="space-y-1">
         {pages.map((p) => (
           <li key={p.id}>
-            <Link href={pageUrl(p)} className="text-blue-600 hover:underline">{p.title || p.slug}</Link>
+            <Link href={pageUrl(p, "", languages)} className="text-blue-600 hover:underline">{p.title || p.slug}</Link>
           </li>
         ))}
       </ul>
@@ -61,7 +65,7 @@ export default async function HomePage() {
       <ul className="space-y-1">
         {blogs.map((b) => (
           <li key={b.id}>
-            <Link href={pageUrl(b)} className="text-blue-600 hover:underline">{b.title || b.slug}</Link>
+            <Link href={pageUrl(b, "", languages)} className="text-blue-600 hover:underline">{b.title || b.slug}</Link>
           </li>
         ))}
         {blogs.length === 0 && <li className="text-slate-500">No blogs published yet.</li>}

@@ -33,12 +33,13 @@ export async function PUT(req, { params }) {
   // Homepage slug can never change.
   const { data: existing } = await admin.from("pages").select("slug, language_code, translation_group_id").eq("id", params.id).single();
   const slug = existing?.slug === "" ? "" : body.slug ?? existing?.slug ?? "";
-  // Slug must stay unique per language (same rule as on create).
+  // Slug must stay unique per language (same rule as on create —
+  // exact full code, so en-US and en-GB may share a slug).
   {
-    const langCode = body.language_code || existing?.language_code || "en-GB";
-    const short = String(langCode).split("-")[0].toLowerCase();
+    const langCode = body.language_code || existing?.language_code || "en-US";
+    const full = String(langCode).toLowerCase();
     const { data: clash } = await admin.from("pages").select("id, language_code").eq("slug", slug);
-    if ((clash || []).some((r) => r.id !== params.id && String(r.language_code || "en-GB").split("-")[0].toLowerCase() === short)) {
+    if ((clash || []).some((r) => r.id !== params.id && String(r.language_code || "en-US").toLowerCase() === full)) {
       return NextResponse.json({ error: `A page with slug "${slug || "(homepage)"}" already exists in this language. Use a different slug.` }, { status: 409 });
     }
   }
@@ -50,7 +51,7 @@ export async function PUT(req, { params }) {
       type: body.type || "tool",
       parent_id: body.parent_id || null,
       title: body.title || "",
-      language_code: body.language_code || "en-GB",
+      language_code: body.language_code || "en-US",
       translation_group_id: body.translation_group_id || existing?.translation_group_id || params.id,
       meta_title: body.meta_title || "",
       meta_description: body.meta_description || "",

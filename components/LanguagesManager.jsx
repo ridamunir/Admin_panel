@@ -38,6 +38,24 @@ export default function LanguagesManager() {
     load();
   }
 
+  // "Make default" — English variants only. Swaps which English
+  // variant has no URL prefix: the chosen one becomes the default
+  // (US <-> UK) and the other moves to its own prefix (/en-us or
+  // /en-gb). Pages are not touched — they keep their true language.
+  async function makeDefault(lang) {
+    if (!window.confirm(`Make ${lang.name} the default language? Its pages will move to no-prefix URLs (/, /slug) and ${lang.full_code === "en-GB" ? "English (US)" : "English (UK)"} will move to ${lang.full_code === "en-GB" ? "/en-us/" : "/en-gb/"}.`)) return;
+    const res = await fetch("/api/admin/languages/make-default", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: lang.id }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || "Could not change the default"); return; }
+    load();
+  }
+
+  const isEnglishVariant = (l) => /^en-(us|gb)$/i.test(l.full_code || "");
+
   async function remove(lang) {
     if (!window.confirm(`Delete the custom language "${lang.name}"? Pages in this language are not deleted, but the language will no longer be selectable.`)) return;
     const res = await fetch(`/api/admin/languages/${lang.id}`, { method: "DELETE" });
@@ -71,9 +89,11 @@ export default function LanguagesManager() {
       <div>
         <h1 className="text-2xl font-bold">Settings — Languages</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Enable the languages this site is published in. The default language (English) has no URL prefix —
-          every other language appears under its code, e.g. <code>/es</code>, <code>/es/blog/...</code>.
-          Only enabled languages appear in the page editor&apos;s Language dropdown.
+          Enable the languages this site is published in. The default language — English (US) — has no URL prefix;
+          English (UK) is a separate option under <code>/en-gb</code> when enabled, and every other language appears
+          under its code, e.g. <code>/es</code>, <code>/es/blog/...</code>. Use &quot;Make default&quot; on an English
+          variant to swap which one is the default (the other moves to its own prefix). Only enabled languages appear
+          in the page editor&apos;s Language dropdown.
         </p>
       </div>
       {!configured && (
@@ -103,6 +123,9 @@ export default function LanguagesManager() {
                   <td className="px-4 py-3">{l.og_locale}</td>
                   <td className="px-4 py-3">{l.enabled ? <span className="font-medium text-green-600">Enabled</span> : <span className="text-slate-400">Disabled</span>}</td>
                   <td className="px-4 py-3 text-right">
+                    {!l.is_default && isEnglishVariant(l) && (
+                      <button onClick={() => makeDefault(l)} className="mr-3 font-medium text-blue-600 hover:underline">Make default</button>
+                    )}
                     {!l.is_default && (
                       <button onClick={() => toggle(l)} className="mr-3 text-blue-600 hover:underline">{l.enabled ? "Disable" : "Enable"}</button>
                     )}

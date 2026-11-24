@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPageBySlug, getSubPages, getTranslations, getRequestLang, isConfigured } from "@/lib/data";
+import { getPageBySlug, getSubPages, getTranslations, getRequestLang, isConfigured, getLanguages, redirectDefaultVariantPrefix } from "@/lib/data";
 import { pageMetadata, isLanguageEnabled } from "@/lib/languages";
 import PublicPage, { DemoBanner } from "@/components/PublicPage";
 
@@ -15,6 +15,7 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 // /<slug> with x-lang=es, so params.slug is always the page's OWN slug
 // in the request language (translated slugs included).
 async function load(params) {
+  await redirectDefaultVariantPrefix();
   const lang = getRequestLang();
   if (lang !== "en" && !(await isLanguageEnabled(lang))) return null;
   const page = await getPageBySlug(params.slug, lang);
@@ -26,7 +27,8 @@ export async function generateMetadata({ params }) {
   const found = await load(params);
   if (!found) return { title: "Not found" };
   const translations = await getTranslations(found.page.translation_group_id || found.page.id);
-  return pageMetadata(found.page, translations, BASE);
+  const languages = await getLanguages();
+  return pageMetadata(found.page, translations, BASE, languages);
 }
 
 export default async function SlugPage({ params }) {

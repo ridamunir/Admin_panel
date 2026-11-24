@@ -10,39 +10,42 @@ async function requireAdmin() {
   return Boolean(user);
 }
 
-function short(code) {
-  return String(code || "en-GB").split("-")[0].toLowerCase();
+function full(code) {
+  return String(code || "en-US").toLowerCase();
 }
 
 // POST /api/admin/pages/[id]/duplicate { language_code }
-// "Duplicate / Translate from English": creates a new draft page in the
-// requested language, linked to the source by translation_group_id.
+// "Duplicate / Translate": creates a new draft page in the requested
+// language, linked to the source by translation_group_id.
 // Structure only — sections and variable NAMES are copied; every value
 // is left EMPTY so Nomi translates the content by hand. English text is
 // never copied over as the other language's content. No auto-translation.
+// Compared on the EXACT full code, so a US page can be duplicated into
+// a UK (en-GB) version and vice versa; only duplicating into the
+// page's own language (or the current default variant) is refused.
 export async function POST(req, { params }) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Supabase not configured — connect Supabase to save changes (see DEPLOY.md)." }, { status: 503 });
   }
   const body = await req.json().catch(() => ({}));
-  const targetShort = short(body.language_code);
-  if (!targetShort || targetShort === "en") {
-    return NextResponse.json({ error: "Pick a non-English language to translate into." }, { status: 400 });
-  }
+  const targetFull = full(body.language_code);
   const enabled = await getEnabledLanguages();
-  const target = enabled.find((l) => l.code === targetShort);
+  const target = enabled.find((l) => full(l.full_code) === targetFull || l.code === targetFull);
   if (!target) {
-    return NextResponse.json({ error: `Language "${targetShort}" is not enabled. Enable it in Settings → Languages first.` }, { status: 400 });
+    return NextResponse.json({ error: `Language "${body.language_code}" is not enabled. Enable it in Settings → Languages first.` }, { status: 400 });
   }
 
   const source = await getPageWithContent(params.id);
   if (!source) return NextResponse.json({ error: "Source page not found" }, { status: 404 });
+  if (full(source.language_code) === targetFull) {
+    return NextResponse.json({ error: "Pick a different language to translate into — this page is already in that language." }, { status: 400 });
+  }
   const groupId = source.translation_group_id || source.id;
 
   const admin = getSupabaseAdmin();
   const { data: groupPages } = await admin.from("pages").select("id, language_code").eq("translation_group_id", groupId);
-  if ((groupPages || []).some((r) => short(r.language_code) === targetShort)) {
+  if ((groupPages || []).some((r) => full(r.language_code) === targetFull)) {
     return NextResponse.json({ error: `A ${target.name} version of this page already exists — open it from the translations list instead.` }, { status: 409 });
   }
 
@@ -53,7 +56,7 @@ export async function POST(req, { params }) {
     const { data: parent } = await admin.from("pages").select("id, translation_group_id").eq("id", newParentId).single();
     if (parent) {
       const { data: parentTrans } = await admin.from("pages").select("id, language_code").eq("translation_group_id", parent.translation_group_id || parent.id);
-      const match = (parentTrans || []).find((r) => short(r.language_code) === targetShort);
+      const match = (parentTrans || []).find((r) => full(r.language_code) === targetFull);
       if (match) newParentId = match.id;
     }
   }

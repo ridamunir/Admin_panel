@@ -33,6 +33,11 @@ export async function POST(req) {
   if (!/^[a-z]{2,3}(-[a-z]{2})?$/.test(code) || !name) {
     return NextResponse.json({ error: "Enter a language name and a valid code (e.g. es, pt-BR)." }, { status: 400 });
   }
+  // English variants are predefined — use Settings → Languages to
+  // enable English (UK) or "Make default" instead of adding one here.
+  if (code === "en" || code === "en-gb" || code === "en-us") {
+    return NextResponse.json({ error: "English (US) and English (UK) are already in the predefined list above — enable one there instead." }, { status: 400 });
+  }
   const short = code.split("-")[0];
   const full = body.full_code || (code.includes("-") ? code : `${short}-${short.toUpperCase()}`);
   const admin = getSupabaseAdmin();

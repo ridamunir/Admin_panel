@@ -8,10 +8,16 @@ import { useRouter } from "next/navigation";
 const TinyEditor = dynamic(() => import("./TinyEditor"), { ssr: false });
 // Local copies of the language URL helpers (lib/languages.js is
 // server-only, so client components cannot import it).
-function shortCode(lc) { return String(lc || "en-GB").split("-")[0].toLowerCase(); }
-function localPageUrl(page) {
-  const sc = shortCode(page.language_code);
-  const prefix = sc === "en" ? "" : `/${sc}`;
+// v4.5: en-US and en-GB are DIFFERENT languages — never collapse them
+// to "en". The default variant (from the languages list) has no
+// prefix; the other English variant gets /en-gb or /en-us.
+function langKey(lc) { const s = String(lc || "en-US").toLowerCase(); if (s === "en-gb" || s === "en-us") return s; return s.split("-")[0]; }
+function shortCode(lc) { return String(lc || "en-US").split("-")[0].toLowerCase(); }
+function hreflangCode(lc) { const s = String(lc || ""); return /^en-[a-z]{2}$/i.test(s) ? s : shortCode(s); }
+function defaultFullCode(languages) { return (languages || []).find((l) => l.is_default)?.full_code || "en-US"; }
+function localPageUrl(page, languages) {
+  const full = String(page.language_code || "en-US").toLowerCase();
+  const prefix = full === defaultFullCode(languages).toLowerCase() ? "" : `/${langKey(page.language_code)}`;
   if (page.type === "blog") return page.slug ? `${prefix}/blog/${page.slug}` : `${prefix}/blog`;
   if (!page.slug) return prefix || "/";
   return `${prefix}/${page.slug}`;
@@ -31,7 +37,7 @@ export default function PageEditor({ initialPage, isNew, parents = [], subPages 
     type: "tool",
     parent_id: "",
     title: "",
-    language_code: "en-GB",
+    language_code: "en-US",
     translation_group_id: "",
     meta_title: "",
     meta_description: "",
@@ -164,7 +170,7 @@ export default function PageEditor({ initialPage, isNew, parents = [], subPages 
     }
   }
 
-  const enabledLangs = (languages.length ? languages.filter((l) => l.enabled) : [{ code: "en", full_code: page.language_code || "en-GB", name: "English", is_default: true }]);
+  const enabledLangs = (languages.length ? languages.filter((l) => l.enabled) : [{ code: "en", full_code: page.language_code || "en-US", name: "English (US)", is_default: true }]);
   // "Duplicate / Translate from English": creates a draft copy in the
   // chosen language with the same sections/variable names and empty
   // values, then opens it for translation.
@@ -189,9 +195,9 @@ export default function PageEditor({ initialPage, isNew, parents = [], subPages 
     }
   }
 
-  const liveUrl = localPageUrl(page);
-  const defaultCode = "en";
-  const translationSources = allPages.filter((p) => p.id !== page.id && shortCode(p.language_code) === defaultCode);
+  const liveUrl = localPageUrl(page, languages);
+  const defaultFull = defaultFullCode(languages);
+  const translationSources = allPages.filter((p) => p.id !== page.id && String(p.language_code || "").toLowerCase() === defaultFull.toLowerCase());
   const groupId = page.translation_group_id || page.id;
   const groupMembers = groupId
     ? allPages.filter((p) => (p.translation_group_id || p.id) === groupId && p.id !== page.id)
@@ -241,7 +247,7 @@ export default function PageEditor({ initialPage, isNew, parents = [], subPages 
           </label>
           <label className="block text-sm font-medium">
             Language
-            <select className="mt-1 w-full rounded-md border px-3 py-2 font-normal" value={page.language_code || "en-GB"} onChange={(e) => setField("language_code", e.target.value)}>
+            <select className="mt-1 w-full rounded-md border px-3 py-2 font-normal" value={page.language_code || "en-US"} onChange={(e) => setField("language_code", e.target.value)}>
               {enabledLangs.map((l) => (
                 <option key={l.id || l.code} value={l.full_code}>{l.name} ({l.full_code}){l.is_default ? " — default, no URL prefix" : ` — /${l.code} prefix`}</option>
               ))}
@@ -328,22 +334,22 @@ export default function PageEditor({ initialPage, isNew, parents = [], subPages 
       {/* Live URL + hreflang preview */}
       <div className="rounded-lg border bg-white p-5">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Live URL &amp; Hreflang (automatic)</h2>
-        <p className="text-sm">This page: <code className="rounded bg-slate-100 px-1">{liveUrl}</code> <span className="text-slate-500">— language: {page.language_code || "en-GB"}</span></p>
+        <p className="text-sm">This page: <code className="rounded bg-slate-100 px-1">{liveUrl}</code> <span className="text-slate-500">— language: {page.language_code || "en-US"}</span></p>
         {groupMembers.length > 0 ? (
           <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {groupMembers.map((p) => (
-              <li key={p.id}>hreflang=&quot;{shortCode(p.language_code)}&quot; → {localPageUrl(p)} <span className="text-slate-400">({p.title || p.slug})</span></li>
+              <li key={p.id}>hreflang=&quot;{hreflangCode(p.language_code)}&quot; → {localPageUrl(p, languages)} <span className="text-slate-400">({p.title || p.slug})</span></li>
             ))}
             <li>hreflang=&quot;x-default&quot; → the default-language version above</li>
           </ul>
         ) : (
           <p className="mt-2 text-sm text-slate-500">No linked translations yet. Create this page in another language and link it with &quot;Translation Of&quot; — the full hreflang set will appear on every version automatically.</p>
         )}
-        {!isNew && enabledLangs.filter((l) => shortCode(l.full_code) !== shortCode(page.language_code) && !groupMembers.some((m) => shortCode(m.language_code) === l.code)).length > 0 && (
+        {!isNew && enabledLangs.filter((l) => String(l.full_code || "").toLowerCase() !== String(page.language_code || "").toLowerCase() && !groupMembers.some((m) => String(m.language_code || "").toLowerCase() === String(l.full_code || "").toLowerCase())).length > 0 && (
           <div className="mt-4 border-t pt-3">
             <p className="mb-2 text-sm font-medium">Create translation (structure copied, content left empty to translate):</p>
             <div className="flex flex-wrap gap-2">
-              {enabledLangs.filter((l) => shortCode(l.full_code) !== shortCode(page.language_code) && !groupMembers.some((m) => shortCode(m.language_code) === l.code)).map((l) => (
+              {enabledLangs.filter((l) => String(l.full_code || "").toLowerCase() !== String(page.language_code || "").toLowerCase() && !groupMembers.some((m) => String(m.language_code || "").toLowerCase() === String(l.full_code || "").toLowerCase())).map((l) => (
                 <button key={l.id || l.code} onClick={() => duplicateToLanguage(l)} disabled={duplicating} className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50">
                   {duplicating ? "Creating..." : `+ ${l.name} version`}
                 </button>

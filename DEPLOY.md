@@ -98,6 +98,7 @@ Login ab Supabase Auth se hai — koi ek shared `ADMIN_PASSWORD` nahi hai. Apna 
 - Env vars ke baghair public site **demo data** par chalti hai aur amber banner dikhata hai: "Demo data — connect Supabase to save changes". **Lekin admin login ke liye Supabase zaroori hai** — baghair Supabase ke `/admin/login` par 503 aye ga ("Supabase not configured"), password-only login nahi hota.
 - Admin mein Save dabane par clear error aye ga. Fix: Step 3 ke 3 required env vars check karo (spelling + values), phir Vercel par **Redeploy** karo.
 - Dashboard par **DB Connected** status bhi check kar sakte ho (`/api/admin/status`).
+- **"permission denied for table pages" (v4.2):** ye Supabase ki permission ki kami hai, code ka bug nahi — schema mein RLS policy thi lekin table par GRANT nahi tha. Fix, bina redeploy ke: Supabase Dashboard → SQL Editor → New query → `supabase/fix-permissions.sql` ki 3 lines paste kar ke Run karo, phir Blogs page refresh karo. Nayi install mein ye fix pehle se `schema.sql` mein hai. Sath ye bhi check karo: Vercel mein `SUPABASE_SERVICE_ROLE_KEY` mein **service_role** wali key honi chahiye, anon/public wali nahi — dono aik jaisi JWT dikhti hain, Supabase Dashboard → Settings → API mein dono alag likhi hoti hain. Ghalat key ho to sahi key lagao aur Redeploy karo.
 
 ## Notes
 
@@ -105,15 +106,16 @@ Login ab Supabase Auth se hai — koi ek shared `ADMIN_PASSWORD` nahi hai. Apna 
 - Homepage ka slug (`/`) aur delete **locked** hai — galti se delete nahi hogi.
 - Draft / Unpublished pages public site par **404** dete hain — sirf Published pages live dikhte hain.
 
-## Multilingual — doosri language kaise add karein (v4)
+## Multilingual — doosri language kaise add karein (v4, English variants v4.5)
 
-English default language hai — us ke URL par koi prefix nahi (`/`, `/blog/...`). Baqi har language apne short code ke neeche ati hai: `/es`, `/es/blog/...`.
+Default language **English (US)** hai — us ke URL par koi prefix nahi (`/`, `/blog/...`). **English (UK)** alag option hai: Settings → Languages mein Enable karein to us ke pages `/en-gb/` ke neeche aayein ge. **"Make default"** se default badla ja sakta hai — UK default ban jaye to UK pages prefix ke baghair aur US pages `/en-us/` par chale jayein ge; pages ka apna language label nahi badalta. Baqi har language apne short code ke neeche ati hai: `/es`, `/es/blog/...`.
 
 1. **Language enable karein:** Admin → **Settings → Languages**. Predefined list mein se language **Enable** karein (Spanish pehle se enabled hai). List mein na ho to neeche **Add a Custom Language** se naam + code khud likh dein — code hi URL prefix banta hai, ghalti na karein (`es` sahi hai, `sp` nahi).
 2. **Page ka version banayein:** Pages → jo page translate karna hai us ke liye **New Page** banayein (ya blog ke liye New Blog), **Language** dropdown se wo language chunein (dropdown mein sirf enabled languages ati hain).
 3. **Slug translate karein:** Slug bhi usi language mein likhein — sirf prefix nahi lagta, slug bhi badalta hai. Misal: English `/who-called-me` → Spanish `/es/quien-me-llamo`; blog `/blog/how-to-check-an-unknown-number` → `/es/blog/como-comprobar-un-numero-desconocido`.
-4. **Link karein:** **Translation Of** mein English wala original page select karein. Isi link se panel har version par poora **hreflang** set khud banata hai (`en`, `es`, `x-default` → English version) — aap ko koi `<link>` tag haath se nahi likhna.
+4. **Link karein:** **Translation Of** mein English wala original page select karein. Isi link se panel har version par poora **hreflang** set khud banata hai (`en-US`, `es`, `x-default` → English (US) version; UK enable ho to `en-GB` bhi) — aap ko koi `<link>` tag haath se nahi likhna.
 5. **Content translate karein:** Language code page ko translate nahi karta — headings, text aur meta usi language mein khud likhein. Meta title/description Spanish page par Spanish mein hi hon ge.
 6. **Canonical:** Canonical field **khaali chhor dein** — panel har language ka canonical usi language ke apne URL par khud lagata hai (self-canonical). Spanish page ka canonical kabhi English URL par mat lagayein, warna Google Spanish page ko ignore kar de ga.
-7. **Check karein:** Page khol kar source mein hreflang dekhein — bilkul paraphraser.io wale pattern par hoga: `x-default` aur `en` dono English URL par, `es` Spanish URL par. `<html lang>` aur OG locale bhi page ki language ke hisab se khud set hote hain.
+7. **Check karein:** Page khol kar source mein hreflang dekhein — bilkul paraphraser.io wale pattern par hoga: `x-default` aur `en-US` dono English (US) URL par, `es` Spanish URL par (UK enable ho to `en-GB` bhi). `<html lang>` aur OG locale bhi page ki language ke hisab se khud set hote hain.
+9. **Purani site par v4.5 update:** Agar site pehle se chal rahi hai (v4.4 ya us se pehle), to `supabase/migrate-en-variants.sql` ek dafa SQL Editor mein chalayein — default English (US) ban jaye ga, English (UK) alag disabled option ke tor par add ho jaye ga, aur purane `en-GB` pages `en-US` label par aa jayein ge. Phir v4.5 wala zip deploy karein.
 8. **Purani site par update:** Agar Supabase project purane schema (v3) se bana tha, to `schema.sql` ke aakhir mein diya gaya **Migration (v3 → v4)** block ek dafa SQL Editor mein chalayein, phir `seed.sql` dobara chalayein.
